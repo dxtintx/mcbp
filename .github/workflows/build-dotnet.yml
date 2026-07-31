@@ -1,4 +1,4 @@
-name: Build & Package .NET MCBlueprint Desktop App
+name: Build & Package .NET MCBlueprint Desktop & Web Apps
 
 on:
   push:
@@ -8,22 +8,33 @@ on:
       - 'v*'
 
 jobs:
-  build-windows:
-    name: Build Windows Apps & NSIS Installer
+  build-all:
+    name: Build Desktop Apps, NSIS Installer & macOS/Linux Web Releases
     runs-on: windows-latest
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (main branch)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Checkout web branch for macOS/Linux releases
+        uses: actions/checkout@v4
+        with:
+          ref: web
+          path: web_src
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Bake Commit Hash into GitVersion.cs
         shell: powershell
@@ -41,6 +52,17 @@ jobs:
       - name: Publish Windows ARM64 Portable
         run: dotnet publish MCBp.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -o publish_win_arm64
 
+      - name: Build macOS & Linux Web App Release Packages
+        shell: powershell
+        run: |
+          cd web_src
+          npm ci
+          npm run build
+          cd out
+          Compress-Archive -Path * -DestinationPath ..\..\MCBlueprint_Web_macOS.zip
+          Compress-Archive -Path * -DestinationPath ..\..\MCBlueprint_Web_Linux.zip
+          cd ..\..
+
       - name: Setup NSIS & Build Windows Installer
         shell: powershell
         run: |
@@ -48,7 +70,7 @@ jobs:
           $env:PATH += ";C:\Program Files (x86)\NSIS"
           & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
 
-      - name: Create Zip Archives
+      - name: Create Zip Archives for Windows
         shell: powershell
         run: |
           Compress-Archive -Path publish_win64\* -DestinationPath MCBlueprint_Portable_Win64.zip
@@ -58,12 +80,14 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MCBlueprint-Desktop-Builds
+          name: MCBlueprint-Desktop-and-Web-Builds
           path: |
             MCBlueprint_Installer_Win64.exe
             MCBlueprint_Portable_Win64.zip
             MCBlueprint_Portable_Win32.zip
             MCBlueprint_Portable_Win_ARM64.zip
+            MCBlueprint_Web_macOS.zip
+            MCBlueprint_Web_Linux.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -78,3 +102,5 @@ jobs:
             MCBlueprint_Portable_Win64.zip
             MCBlueprint_Portable_Win32.zip
             MCBlueprint_Portable_Win_ARM64.zip
+            MCBlueprint_Web_macOS.zip
+            MCBlueprint_Web_Linux.zip
