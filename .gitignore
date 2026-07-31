@@ -25,6 +25,12 @@
 .DS_Store
 *.pem
 
+*firebase*
+*CLAUDE*
+*AGENTS*
+
+!firebase-hosting-merge.yml
+
 # debug
 npm-debug.log*
 yarn-debug.log*

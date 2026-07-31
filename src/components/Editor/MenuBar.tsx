@@ -246,8 +246,17 @@ export function MenuBar({
         )}
       </div>
 
+      {/* Git Commit Hash Badge */}
+      <div
+        title="Git Commit Hash"
+        className="ml-auto text-[10px] font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded flex items-center gap-1 cursor-default select-none"
+      >
+        <span className="text-zinc-500 font-bold">#</span>
+        <span>{process.env.NEXT_PUBLIC_COMMIT_HASH || 'dev'}</span>
+      </div>
+
       {/* 4. Language Menu */}
-      <div className="relative ml-auto">
+      <div className="relative">
         <button
           onClick={() => toggleMenu('language')}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors ${
