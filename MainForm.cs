@@ -266,7 +266,7 @@ public class MainForm : Form
             TextAlign = ContentAlignment.MiddleLeft,
         };
 
-        _commitLabel = new ToolStripStatusLabel($"#{GetGitCommitHash()}")
+        _commitLabel = new ToolStripStatusLabel(GetGitCommitHash())
         {
             Spring = true,
             TextAlign = ContentAlignment.MiddleRight,
@@ -667,6 +667,9 @@ public class MainForm : Form
 
     private static string GetGitCommitHash()
     {
+        if (GitVersion.CommitHash != "dev" && !string.IsNullOrEmpty(GitVersion.CommitHash))
+            return GitVersion.CommitHash;
+
         try
         {
             var psi = new System.Diagnostics.ProcessStartInfo
@@ -688,6 +691,6 @@ public class MainForm : Form
         }
         catch { }
 
-        return "f61eeb9";
+        return "dev";
     }
 }

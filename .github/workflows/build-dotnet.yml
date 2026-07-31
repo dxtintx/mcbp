@@ -1,0 +1,65 @@
+name: Build & Package .NET MCBlueprint Desktop App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-portable:
+    name: Build Portable Apps & Windows NSIS Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Bake Commit Hash into GitVersion.cs
+        shell: powershell
+        run: |
+          $hash = git rev-parse --short HEAD
+          "namespace MCBp; public static class GitVersion { public const string CommitHash = `"$hash`"; }" | Out-File -FilePath GitVersion.cs -Encoding utf8
+
+      - name: Publish Windows x64 Portable
+        run: dotnet publish MCBp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_win64
+
+      - name: Publish macOS x64 Portable
+        run: dotnet publish MCBp.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish_osx64
+
+      - name: Publish macOS ARM64 Portable
+        run: dotnet publish MCBp.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o publish_osx_arm64
+
+      - name: Publish Linux x64 Portable
+        run: dotnet publish MCBp.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish_linux64
+
+      - name: Setup NSIS & Build Windows Installer
+        shell: powershell
+        run: |
+          choco install nsis -y
+          makensis installer.nsi
+
+      - name: Create Zip Archives
+        shell: powershell
+        run: |
+          Compress-Archive -Path publish_win64\* -DestinationPath MCBlueprint_Portable_Win64.zip
+          Compress-Archive -Path publish_osx64\* -DestinationPath MCBlueprint_Portable_macOS_x64.zip
+          Compress-Archive -Path publish_osx_arm64\* -DestinationPath MCBlueprint_Portable_macOS_ARM64.zip
+          Compress-Archive -Path publish_linux64\* -DestinationPath MCBlueprint_Portable_Linux64.zip
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MCBlueprint-Desktop-Builds
+          path: |
+            MCBlueprint_Installer_Win64.exe
+            MCBlueprint_Portable_Win64.zip
+            MCBlueprint_Portable_macOS_x64.zip
+            MCBlueprint_Portable_macOS_ARM64.zip
+            MCBlueprint_Portable_Linux64.zip
