@@ -8,8 +8,8 @@ on:
       - 'v*'
 
 jobs:
-  build-portable:
-    name: Build Portable Apps & Windows NSIS Installer
+  build-windows:
+    name: Build Windows Apps & NSIS Installer
     runs-on: windows-latest
     permissions:
       contents: write
@@ -34,14 +34,11 @@ jobs:
       - name: Publish Windows x64 Portable
         run: dotnet publish MCBp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_win64
 
-      - name: Publish macOS x64 Portable
-        run: dotnet publish MCBp.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -o publish_osx64
+      - name: Publish Windows x86 Portable
+        run: dotnet publish MCBp.csproj -c Release -r win-x86 --self-contained true -p:PublishSingleFile=true -o publish_win86
 
-      - name: Publish macOS ARM64 Portable
-        run: dotnet publish MCBp.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o publish_osx_arm64
-
-      - name: Publish Linux x64 Portable
-        run: dotnet publish MCBp.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o publish_linux64
+      - name: Publish Windows ARM64 Portable
+        run: dotnet publish MCBp.csproj -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true -o publish_win_arm64
 
       - name: Setup NSIS & Build Windows Installer
         shell: powershell
@@ -53,9 +50,8 @@ jobs:
         shell: powershell
         run: |
           Compress-Archive -Path publish_win64\* -DestinationPath MCBlueprint_Portable_Win64.zip
-          Compress-Archive -Path publish_osx64\* -DestinationPath MCBlueprint_Portable_macOS_x64.zip
-          Compress-Archive -Path publish_osx_arm64\* -DestinationPath MCBlueprint_Portable_macOS_ARM64.zip
-          Compress-Archive -Path publish_linux64\* -DestinationPath MCBlueprint_Portable_Linux64.zip
+          Compress-Archive -Path publish_win86\* -DestinationPath MCBlueprint_Portable_Win32.zip
+          Compress-Archive -Path publish_win_arm64\* -DestinationPath MCBlueprint_Portable_Win_ARM64.zip
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -64,9 +60,8 @@ jobs:
           path: |
             MCBlueprint_Installer_Win64.exe
             MCBlueprint_Portable_Win64.zip
-            MCBlueprint_Portable_macOS_x64.zip
-            MCBlueprint_Portable_macOS_ARM64.zip
-            MCBlueprint_Portable_Linux64.zip
+            MCBlueprint_Portable_Win32.zip
+            MCBlueprint_Portable_Win_ARM64.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -79,6 +74,5 @@ jobs:
           files: |
             MCBlueprint_Installer_Win64.exe
             MCBlueprint_Portable_Win64.zip
-            MCBlueprint_Portable_macOS_x64.zip
-            MCBlueprint_Portable_macOS_ARM64.zip
-            MCBlueprint_Portable_Linux64.zip
+            MCBlueprint_Portable_Win32.zip
+            MCBlueprint_Portable_Win_ARM64.zip
