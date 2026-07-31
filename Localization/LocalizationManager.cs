@@ -1,18 +1,93 @@
+using System.Globalization;
+
 namespace MCBp.Localization;
 
-/// <summary>
-/// Менеджер локализации на 10 языков.
-/// </summary>
 public static class LocalizationManager
 {
-    public static Language CurrentLanguage { get; set; } = Language.Russian;
+    public static Language CurrentLanguage { get; private set; } = Language.English;
 
     public static event Action? LanguageChanged;
+
+    private static readonly string SettingsFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MCBlueprint",
+        "settings.txt"
+    );
+
+    static LocalizationManager()
+    {
+        Initialize();
+    }
+
+    public static void Initialize()
+    {
+        var saved = LoadLanguageSetting();
+        if (saved.HasValue)
+        {
+            CurrentLanguage = saved.Value;
+        }
+        else
+        {
+            CurrentLanguage = DetectSystemLanguage();
+        }
+    }
 
     public static void SetLanguage(Language lang)
     {
         CurrentLanguage = lang;
+        SaveLanguageSetting(lang);
         LanguageChanged?.Invoke();
+    }
+
+    private static Language DetectSystemLanguage()
+    {
+        var culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant();
+
+        return culture switch
+        {
+            "ru" => Language.Russian,
+            "es" => Language.Spanish,
+            "de" => Language.German,
+            "fr" => Language.French,
+            "zh" => Language.Chinese,
+            "ja" => Language.Japanese,
+            "pt" => Language.Portuguese,
+            "it" => Language.Italian,
+            "ko" => Language.Korean,
+            _ => Language.English
+        };
+    }
+
+    private static Language? LoadLanguageSetting()
+    {
+        try
+        {
+            if (File.Exists(SettingsFilePath))
+            {
+                string text = File.ReadAllText(SettingsFilePath).Trim();
+                if (Enum.TryParse<Language>(text, true, out var lang))
+                {
+                    return lang;
+                }
+            }
+        }
+        catch { }
+
+        return null;
+    }
+
+    private static void SaveLanguageSetting(Language lang)
+    {
+        try
+        {
+            string? dir = Path.GetDirectoryName(SettingsFilePath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            File.WriteAllText(SettingsFilePath, lang.ToString());
+        }
+        catch { }
     }
 
     public static string GetNativeName(Language lang) => lang switch
