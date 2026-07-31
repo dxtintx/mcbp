@@ -25,12 +25,14 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Bake Commit Hash into GitVersion.cs
+      - name: Bake Commit Hash and Version into GitVersion.cs
         shell: powershell
         run: |
           $hash = git rev-parse --short HEAD
-          "namespace MCBp; public static class GitVersion { public const string CommitHash = `"$hash`"; }" | Out-File -FilePath GitVersion.cs -Encoding utf8
+          $ver = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}" } else { "v1.0.${{ github.run_number }}" }
+          "namespace MCBp; public static class GitVersion { public const string CommitHash = `"$hash`"; public const string Version = `"$ver`"; }" | Out-File -FilePath GitVersion.cs -Encoding utf8
           echo "SHORT_SHA=$hash" >> $env:GITHUB_ENV
+          echo "APP_VER=$ver" >> $env:GITHUB_ENV
 
       - name: Publish Windows x64 Portable
         run: dotnet publish MCBp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_win64
@@ -46,35 +48,35 @@ jobs:
         run: |
           choco install nsis -y
           $env:PATH += ";C:\Program Files (x86)\NSIS"
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /DVERSION="${{ env.APP_VER }}" /DOUTFILE="MCBlueprint_${{ env.APP_VER }}_Installer_Win64.exe" installer.nsi
 
       - name: Create Zip Archives for .NET Executables
         shell: powershell
         run: |
-          Compress-Archive -Path publish_win64\* -DestinationPath MCBlueprint_Portable_Win64.zip
-          Compress-Archive -Path publish_win86\* -DestinationPath MCBlueprint_Portable_Win32.zip
-          Compress-Archive -Path publish_win_arm64\* -DestinationPath MCBlueprint_Portable_Win_ARM64.zip
+          Compress-Archive -Path publish_win64\* -DestinationPath "MCBlueprint_${{ env.APP_VER }}_Portable_Win64.zip"
+          Compress-Archive -Path publish_win86\* -DestinationPath "MCBlueprint_${{ env.APP_VER }}_Portable_Win32.zip"
+          Compress-Archive -Path publish_win_arm64\* -DestinationPath "MCBlueprint_${{ env.APP_VER }}_Portable_Win_ARM64.zip"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: MCBlueprint-DotNet-Builds
           path: |
-            MCBlueprint_Installer_Win64.exe
-            MCBlueprint_Portable_Win64.zip
-            MCBlueprint_Portable_Win32.zip
-            MCBlueprint_Portable_Win_ARM64.zip
+            MCBlueprint_${{ env.APP_VER }}_Installer_Win64.exe
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win64.zip
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win32.zip
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win_ARM64.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: ${{ github.ref_name == 'main' && format('v1.0.{0}', github.run_number) || github.ref_name }}
-          name: ${{ github.ref_name == 'main' && format('v1.0.{0} ({1})', github.run_number, env.SHORT_SHA) || format('{0} ({1})', github.ref_name, env.SHORT_SHA) }}
+          tag_name: ${{ env.APP_VER }}
+          name: ${{ format('{0} ({1})', env.APP_VER, env.SHORT_SHA) }}
           draft: false
           prerelease: false
           files: |
-            MCBlueprint_Installer_Win64.exe
-            MCBlueprint_Portable_Win64.zip
-            MCBlueprint_Portable_Win32.zip
-            MCBlueprint_Portable_Win_ARM64.zip
+            MCBlueprint_${{ env.APP_VER }}_Installer_Win64.exe
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win64.zip
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win32.zip
+            MCBlueprint_${{ env.APP_VER }}_Portable_Win_ARM64.zip

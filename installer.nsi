@@ -1,12 +1,20 @@
 !define APP_NAME "MCBlueprint"
 !define COMP_NAME "MCBlueprint Team"
-!define VERSION "1.0.0"
+
+!ifndef VERSION
+  !define VERSION "1.0.0"
+!endif
+
+!ifndef OUTFILE
+  !define OUTFILE "MCBlueprint_Installer_Win64.exe"
+!endif
+
 !define EXEC_NAME "MCBp.exe"
 
 Icon "app.ico"
 UninstallIcon "app.ico"
 
-OutFile "MCBlueprint_Installer_Win64.exe"
+OutFile "${OUTFILE}"
 InstallDir "$PROGRAMFILES64\MCBlueprint"
 RequestExecutionLevel admin
 
