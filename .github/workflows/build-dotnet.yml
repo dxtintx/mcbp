@@ -30,6 +30,7 @@ jobs:
         run: |
           $hash = git rev-parse --short HEAD
           "namespace MCBp; public static class GitVersion { public const string CommitHash = `"$hash`"; }" | Out-File -FilePath GitVersion.cs -Encoding utf8
+          echo "SHORT_SHA=$hash" >> $env:GITHUB_ENV
 
       - name: Publish Windows x64 Portable
         run: dotnet publish MCBp.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish_win64
@@ -68,8 +69,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: ${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
-          name: ${{ github.ref_name == 'main' && 'Latest Build' || github.ref_name }}
+          tag_name: ${{ github.ref_name == 'main' && format('v1.0.0-{0}', env.SHORT_SHA) || github.ref_name }}
+          name: ${{ github.ref_name == 'main' && format('v1.0.0 ({0})', env.SHORT_SHA) || format('{0} ({1})', github.ref_name, env.SHORT_SHA) }}
           draft: false
           prerelease: false
           files: |
