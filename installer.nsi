@@ -3,6 +3,9 @@
 !define VERSION "1.0.0"
 !define EXEC_NAME "MCBp.exe"
 
+Icon "app.ico"
+UninstallIcon "app.ico"
+
 OutFile "MCBlueprint_Installer_Win64.exe"
 InstallDir "$PROGRAMFILES64\MCBlueprint"
 RequestExecutionLevel admin
@@ -16,10 +19,11 @@ UninstPage instfiles
 Section "MainSection" SEC01
     SetOutPath "$INSTDIR"
     File /r "publish_win64\*.*"
+    File "app.ico"
 
     CreateDirectory "$SMPROGRAMS\MCBlueprint"
-    CreateShortcut "$SMPROGRAMS\MCBlueprint\MCBlueprint.lnk" "$INSTDIR\${EXEC_NAME}"
-    CreateShortcut "$DESKTOP\MCBlueprint.lnk" "$INSTDIR\${EXEC_NAME}"
+    CreateShortcut "$SMPROGRAMS\MCBlueprint\MCBlueprint.lnk" "$INSTDIR\${EXEC_NAME}" "" "$INSTDIR\app.ico"
+    CreateShortcut "$DESKTOP\MCBlueprint.lnk" "$INSTDIR\${EXEC_NAME}" "" "$INSTDIR\app.ico"
 
     WriteUninstaller "$INSTDIR\uninstall.exe"
 SectionEnd

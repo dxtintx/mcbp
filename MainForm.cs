@@ -72,7 +72,15 @@ public class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         KeyPreview = true;
 
-        if (File.Exists("logo.png"))
+        if (File.Exists("app.ico"))
+        {
+            try
+            {
+                Icon = new Icon("app.ico");
+            }
+            catch { }
+        }
+        else if (File.Exists("logo.png"))
         {
             try
             {
