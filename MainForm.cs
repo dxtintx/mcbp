@@ -44,6 +44,7 @@ public class MainForm : Form
     private readonly ToolStripStatusLabel _sizeLabel;
     private readonly ToolStripStatusLabel _blockCountLabel;
     private readonly ToolStripStatusLabel _zoomLabel;
+    private readonly ToolStripStatusLabel _commitLabel;
 
     // Тулбар элементы
     private readonly ToolStripButton _undoToolButton;
@@ -259,14 +260,22 @@ public class MainForm : Form
 
         _zoomLabel = new ToolStripStatusLabel()
         {
+            BorderSides = ToolStripStatusLabelBorderSides.Right,
             AutoSize = false,
             Width = 140,
             TextAlign = ContentAlignment.MiddleLeft,
         };
 
+        _commitLabel = new ToolStripStatusLabel($"#{GetGitCommitHash()}")
+        {
+            Spring = true,
+            TextAlign = ContentAlignment.MiddleRight,
+            ForeColor = Color.Gray,
+        };
+
         _statusStrip.Items.AddRange(new ToolStripItem[]
         {
-            _coordLabel, _sizeLabel, _blockCountLabel, _zoomLabel
+            _coordLabel, _sizeLabel, _blockCountLabel, _zoomLabel, _commitLabel
         });
 
         // === Компоновка формы ===
@@ -654,5 +663,31 @@ public class MainForm : Form
         return dlg.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(dlg.InputText)
             ? dlg.InputText
             : null;
+    }
+
+    private static string GetGitCommitHash()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = "rev-parse --short HEAD",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = System.Diagnostics.Process.Start(psi);
+            if (process != null)
+            {
+                string output = process.StandardOutput.ReadToEnd().Trim();
+                process.WaitForExit(1000);
+                if (!string.IsNullOrEmpty(output) && output.Length <= 12)
+                    return output;
+            }
+        }
+        catch { }
+
+        return "f61eeb9";
     }
 }
