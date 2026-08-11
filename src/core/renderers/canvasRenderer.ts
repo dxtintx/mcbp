@@ -131,8 +131,8 @@ function drawRuler(
 
   const distance =
     ruler.startX === ruler.endX
-      ? Math.abs(ruler.endY - ruler.startY)
-      : Math.abs(ruler.endX - ruler.startX);
+      ? Math.abs(ruler.endY - ruler.startY) + 1
+      : Math.abs(ruler.endX - ruler.startX) + 1;
 
   const rulerUnit = getTranslation(lang, 'RulerUnit');
   const label = `${distance} ${rulerUnit}`;
