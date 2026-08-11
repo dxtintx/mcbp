@@ -6,6 +6,7 @@
     "type": "git",
     "url": "https://github.com/dxtintx/mcbp.git"
   },
+  "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
