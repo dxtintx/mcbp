@@ -559,7 +559,7 @@ public class MainForm : Form
         using var form = new Form
         {
             Text = LocalizationManager.Get("AboutTitle"),
-            Size = new Size(420, 360),
+            Size = new Size(420, 420),
             StartPosition = FormStartPosition.CenterParent,
             FormBorderStyle = FormBorderStyle.FixedDialog,
             MaximizeBox = false,
