@@ -73,7 +73,7 @@ public class RulerTool : ITool
         g.DrawLine(pen, cx1, cy1, cx2, cy2);
 
         // Расстояние
-        int dist = Math.Abs(snapped.X - _startPos.Value.X) + Math.Abs(snapped.Y - _startPos.Value.Y);
+        int dist = Math.Abs(snapped.X - _startPos.Value.X) + Math.Abs(snapped.Y - _startPos.Value.Y) + 1;
         string label = $"{dist} блоков";
         using var font = new Font("Segoe UI", 9f, FontStyle.Bold);
         var textSize = g.MeasureString(label, font);

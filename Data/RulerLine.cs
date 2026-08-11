@@ -9,6 +9,6 @@ public class RulerLine
 
     public int Distance =>
         StartX == EndX
-            ? Math.Abs(EndY - StartY)
-            : Math.Abs(EndX - StartX);
+            ? Math.Abs(EndY - StartY) + 1
+            : Math.Abs(EndX - StartX) + 1;
 }
